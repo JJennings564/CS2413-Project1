@@ -116,40 +116,40 @@ public:
     }
 
     SparseMatrix* Addition(SparseMatrix& M) {
-         // Check if the two matrices have the same dimensions
+         // Check if the two matrices have the same size
     if (noRows != M.noRows || noCols != M.noCols) {
-        cout << "Matrices cannot be added due to dimension mismatch!" << endl;
-        return nullptr;
+        cout << "Matrix addition is not possible" << endl;
+        return NULL;
     }
 
-    // Step 1: Create a new matrix to store the result
-    SparseMatrix* result = new SparseMatrix(noRows, noCols, commonValue + M.commonValue, 0); // Temp noNonSparseValues will be set later
-
-    int resultNonSparseCount = 0;
-
-    // Step 2: Traverse both matrices and add corresponding values
-    int currentIndexA = 0, currentIndexB = 0;
+    // Loop through each cell of the matrix
     for (int i = 0; i < noRows; i++) {
         for (int j = 0; j < noCols; j++) {
-            int valueA = (currentIndexA < noNonSparseValues && myMatrix[currentIndexA].getRow() == i && myMatrix[currentIndexA].getCol() == j) ? myMatrix[currentIndexA++].getValue() : commonValue;
-            int valueB = (currentIndexB < M.noNonSparseValues && M.myMatrix[currentIndexB].getRow() == i && M.myMatrix[currentIndexB].getCol() == j) ? M.myMatrix[currentIndexB++].getValue() : M.commonValue;
+            int valueA = commonValue;
+            int valueB = M.commonValue;
 
-            int sum = valueA + valueB;
-
-            // If the sum is not the common value, store it in the result matrix
-            if (sum != (commonValue + M.commonValue)) {
-                result->myMatrix[resultNonSparseCount] = SparseRow(i, j, sum);
-                resultNonSparseCount++;
+            // Check if the current cell has a non sparse value
+            for (int k = 0; k < noNonSparseValues; k++) {
+                if (myMatrix[k].getRow() == i && myMatrix[k].getCol() == j) {
+                    valueA = myMatrix[k].getValue(); // Get the value from the first matrix
+                    break; // Exit loop since we've found the value
+                }
             }
+
+            // Check if the current cell has a non sparse value
+            for (int k = 0; k < M.noNonSparseValues; k++) {
+                if (M.myMatrix[k].getRow() == i && M.myMatrix[k].getCol() == j) {
+                    valueB = M.myMatrix[k].getValue(); // Get the value from the second matrix
+                    break; // Exit loop since we've found the value
+                }
+            }
+            int sum = valueA + valueB;
+            cout << sum << " ";
         }
+        cout << endl;
     }
-
-    // Update the number of non-sparse values in the result matrix
-    result->noNonSparseValues = resultNonSparseCount;
-
-    // Step 3: Return the result matrix
-    return result;
-    }
+    return NULL;
+}
 
     SparseMatrix* Multiply(SparseMatrix& M) {
         // Placeholder logic for multiplication (implementation needed)
