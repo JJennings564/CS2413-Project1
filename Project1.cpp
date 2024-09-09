@@ -116,122 +116,111 @@ public:
     }
 
     SparseMatrix* Addition(SparseMatrix& M) {
-    if (noRows != M.noRows || noCols != M.noCols) {
-        cout << "Matrix addition is not possible" << endl;
-        return nullptr;
-    }
-
-    // result matrix to store new matrix
-    SparseMatrix* result = new SparseMatrix(noRows, noCols, commonValue, 0);
-
-    // Array to store sum in sparse format
-    SparseRow* tempMatrix = new SparseRow[noRows * noCols];
-    int resultNonSparseCount = 0;
-
-    // Loop through each cell of the matrix
-    for (int i = 0; i < noRows; i++) {
-        for (int j = 0; j < noCols; j++) {
-            int valueA = commonValue;
-            int valueB = M.commonValue;
-
-            // Find value in current matrix
-            for (int k = 0; k < noNonSparseValues; k++) {
-                if (myMatrix[k].getRow() == i && myMatrix[k].getCol() == j) {
-                    valueA = myMatrix[k].getValue(); // Get value from the first matrix
-                    break;
-                }
-            }
-
-            // Find value in matrix M
-            for (int k = 0; k < M.noNonSparseValues; k++) {
-                if (M.myMatrix[k].getRow() == i && M.myMatrix[k].getCol() == j) {
-                    valueB = M.myMatrix[k].getValue(); // Get value from the second matrix
-                    break;
-                }
-            }
-
-            int sum = valueA + valueB;
-
-            // Only store non-sparse values
-            if (sum != commonValue) {
-                tempMatrix[resultNonSparseCount] = SparseRow(i, j, sum);
-                resultNonSparseCount++;
-            }
-        }
-    }
-
-    // Set the non-sparse values count and transfer results to the result matrix
-    result->noNonSparseValues = resultNonSparseCount;
-    delete[] result->myMatrix;  // Delete old empty matrix
-    result->myMatrix = new SparseRow[resultNonSparseCount];
-    for (int i = 0; i < resultNonSparseCount; i++) {
-        result->myMatrix[i] = tempMatrix[i];
-    }
-
-    delete[] tempMatrix; // Free temp storage
-    return result;
-}
-
-    SparseMatrix* Multiply(SparseMatrix& M) {
-        if (noRows != M.noCols){
-            cout << "Matrix multiplication is not possible" << endl;
+        if (noRows != M.noRows || noCols != M.noCols) {
+            cout << "Matrix addition is not possible" << endl;
             return nullptr;
         }
-        // result matrix with dimensions (noRows x M.noCols)
-    SparseMatrix* result = new SparseMatrix(noRows, M.noCols, commonValue, 0);
 
-    // Temporary array to store the NsV of the result matrix
-    int nonSparseCount = 0;
-    SparseRow* tempArray = new SparseRow[noRows * M.noCols];
+        SparseMatrix* result = new SparseMatrix(noRows, noCols, commonValue, 0);
+        SparseRow* tempMatrix = new SparseRow[noRows * noCols];
+        int resultNonSparseCount = 0;
 
-    // Perform matrix multiplication
-    for (int i = 0; i < noRows; i++) {
-        for (int j = 0; j < M.noCols; j++) {
-            int sum = 0;
-
-            for (int k = 0; k < noCols; k++) {
+        // Loop through each cell of the matrix
+        for (int i = 0; i < noRows; i++) {
+            for (int j = 0; j < noCols; j++) {
                 int valueA = commonValue;
                 int valueB = M.commonValue;
 
-                // Find value in matrix A (row i, column k)
-                for (int a = 0; a < noNonSparseValues; a++) {
-                    if (myMatrix[a].getRow() == i && myMatrix[a].getCol() == k) {
-                        valueA = myMatrix[a].getValue();
+                // Find value in current matrix
+                for (int k = 0; k < noNonSparseValues; k++) {
+                    if (myMatrix[k].getRow() == i && myMatrix[k].getCol() == j) {
+                        valueA = myMatrix[k].getValue();
                         break;
                     }
                 }
 
-                // Find value in matrix B (row k, column j)
-                for (int b = 0; b < M.noNonSparseValues; b++) {
-                    if (M.myMatrix[b].getRow() == k && M.myMatrix[b].getCol() == j) {
-                        valueB = M.myMatrix[b].getValue();
+                // Find value in matrix M
+                for (int k = 0; k < M.noNonSparseValues; k++) {
+                    if (M.myMatrix[k].getRow() == i && M.myMatrix[k].getCol() == j) {
+                        valueB = M.myMatrix[k].getValue();
                         break;
                     }
                 }
 
-                // Multiply the two values and add to the sum
-                sum += valueA * valueB;
-            }
+                int sum = valueA + valueB;
 
-            // If the result is not the common value, store it
-            if (sum != commonValue) {
-                tempArray[nonSparseCount] = SparseRow(i, j, sum);
-                nonSparseCount++;
+                // Only store non-sparse values
+                if (sum != commonValue) {
+                    tempMatrix[resultNonSparseCount] = SparseRow(i, j, sum);
+                    resultNonSparseCount++;
+                }
             }
         }
+
+        result->noNonSparseValues = resultNonSparseCount;
+        delete[] result->myMatrix;
+        result->myMatrix = new SparseRow[resultNonSparseCount];
+        for (int i = 0; i < resultNonSparseCount; i++) {
+            result->myMatrix[i] = tempMatrix[i];
+        }
+
+        delete[] tempMatrix;
+        return result;
     }
 
-    // Create a new SparseMatrix with the NSV
-    result->noNonSparseValues = nonSparseCount;
-    result->myMatrix = new SparseRow[nonSparseCount];
-    for (int i = 0; i < nonSparseCount; i++) {
-        result->myMatrix[i] = tempArray[i];
-    }
+    SparseMatrix* Multiply(SparseMatrix& M) {
+        if (noCols != M.noRows) {
+            cout << "Matrix multiplication is not possible" << endl;
+            return nullptr;
+        }
 
-    // delete tempArray for storage
-    delete[] tempArray;
+        SparseMatrix* result = new SparseMatrix(noRows, M.noCols, commonValue, 0);
+        SparseRow* tempMatrix = new SparseRow[noRows * M.noCols];
+        int resultNonSparseCount = 0;
 
-    return result;
+        // Perform multiplication
+        for (int i = 0; i < noRows; i++) {
+            for (int j = 0; j < M.noCols; j++) {
+                int sum = 0;
+                for (int k = 0; k < noCols; k++) {
+                    int valueA = commonValue;
+                    int valueB = M.commonValue;
+
+                    // Find value in matrix A
+                    for (int a = 0; a < noNonSparseValues; a++) {
+                        if (myMatrix[a].getRow() == i && myMatrix[a].getCol() == k) {
+                            valueA = myMatrix[a].getValue();
+                            break;
+                        }
+                    }
+
+                    // Find value in matrix B
+                    for (int b = 0; b < M.noNonSparseValues; b++) {
+                        if (M.myMatrix[b].getRow() == k && M.myMatrix[b].getCol() == j) {
+                            valueB = M.myMatrix[b].getValue();
+                            break;
+                        }
+                    }
+
+                    sum += valueA * valueB;
+                }
+
+                if (sum != commonValue) {
+                    tempMatrix[resultNonSparseCount] = SparseRow(i, j, sum);
+                    resultNonSparseCount++;
+                }
+            }
+        }
+
+        result->noNonSparseValues = resultNonSparseCount;
+        delete[] result->myMatrix;
+        result->myMatrix = new SparseRow[resultNonSparseCount];
+        for (int i = 0; i < resultNonSparseCount; i++) {
+            result->myMatrix[i] = tempMatrix[i];
+        }
+
+        delete[] tempMatrix;
+        return result;
     }
 };
 
@@ -247,47 +236,53 @@ int main() {
     cin >> n >> m >> cv >> noNSV;
     SparseMatrix* secondOne = new SparseMatrix(n, m, cv, noNSV);
 
-    //Display first matrix in sparse format
+    // Display first matrix in sparse format
     cout << "First one in sparse matrix format" << endl;
     cout << *firstOne;
 
     // Transpose of the first matrix
-    cout << "After Transpose" << endl;
+    cout << "After transpose" << endl;
     SparseMatrix* transposed = firstOne->Transpose();
     cout << *transposed;
 
-    // Display first matrix
+    // Display first matrix in normal format
     cout << "First one in matrix format" << endl;
     firstOne->displayMatrix();
 
-    //Display second matrix in sparse format
+    // Display second matrix in sparse format
     cout << "Second one in sparse matrix format" << endl;
     cout << *secondOne;
 
-    //Transpose of the second matrix
-    cout << "After Transpose" << endl;
+    // Transpose of the second matrix
+    cout << "After transpose" << endl;
     SparseMatrix* secondTransposed = secondOne->Transpose();
     cout << *secondTransposed;
 
-    // Display second matrix
+    // Display second matrix in normal format
     cout << "Second one in matrix format" << endl;
     secondOne->displayMatrix();
 
     // Matrix addition result
     cout << "Matrix Addition Result" << endl;
     temp = firstOne->Addition(*secondOne);
-    temp->displayMatrix();
+    if (temp != nullptr) {
+        temp->displayMatrix();
+        delete temp;
+    }
 
     // Matrix multiplication result
     cout << "Matrix Multiplication Result" << endl;
     temp = firstOne->Multiply(*secondOne);
-    temp->displayMatrix();
+    if (temp != nullptr) {
+        temp->displayMatrix();
+        delete temp;
+    }
 
     // Clean up
     delete firstOne;
     delete secondOne;
     delete transposed;
-    delete temp;
+    delete secondTransposed;
 
     return 0;
 }
