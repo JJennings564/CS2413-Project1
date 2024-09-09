@@ -177,10 +177,10 @@ public:
             cout << "Matrix multiplication is not possible" << endl;
             return nullptr;
         }
-        // Create a result matrix with dimensions (noRows x M.noCols)
-    SparseMatrix* result = new SparseMatrix(noRows, M.noCols, commonValue, 0); // We don't know noNonSparseValues yet
+        // result matrix with dimensions (noRows x M.noCols)
+    SparseMatrix* result = new SparseMatrix(noRows, M.noCols, commonValue, 0);
 
-    // Temporary array to store the non-sparse values of the result matrix
+    // Temporary array to store the NsV of the result matrix
     int nonSparseCount = 0;
     SparseRow* tempArray = new SparseRow[noRows * M.noCols];
 
@@ -189,7 +189,6 @@ public:
         for (int j = 0; j < M.noCols; j++) {
             int sum = 0;
 
-            // Compute the dot product of row i from first matrix and column j from second matrix
             for (int k = 0; k < noCols; k++) {
                 int valueA = commonValue;
                 int valueB = M.commonValue;
@@ -222,14 +221,14 @@ public:
         }
     }
 
-    // Create a new SparseMatrix with the computed non-sparse values
+    // Create a new SparseMatrix with the NSV
     result->noNonSparseValues = nonSparseCount;
     result->myMatrix = new SparseRow[nonSparseCount];
     for (int i = 0; i < nonSparseCount; i++) {
         result->myMatrix[i] = tempArray[i];
     }
 
-    // Clean up temporary storage
+    // delete tempArray for storage
     delete[] tempArray;
 
     return result;
@@ -292,3 +291,62 @@ int main() {
 
     return 0;
 }
+
+
+/*              LLM / chatGPT documentation and usage
+
+    The first question for this project that I asked chatGPT about was "My cout statements in my main
+     class are giving an error dued to my overwriting statements not being formatted correctly. Could
+     you reformat them in a way that will not produced these errors and overwrite properly."
+
+     When chatGPT gave me an adequate answer for this question it also gave me an early version of 
+     of my sparseMatrix constructor in the form "SparseMatrix(int n, int m, int cv, int noNSV)
+    : noRows(n), noCols(m), commonValue(cv), noNonSparseValues(noNSV)" I used this opportunity to learn
+    the declaration method chatgpt was using by asking it what that line does but ended up rewriting my
+    method in a way that was more understandable to me and that I was more comfortable with.
+
+    This got me to a point where my code was able to run and produce a close result for the matrix editing
+    methods and I came up with only 1 error which caused the first NSV to be skipped if there were 2 in 
+    the same row. I asked chatGPT to check my logic and explained the error and it was able to explain
+    what caused it and give me the information to edit my method and fix the error
+
+    After this point all that was left was my addition and multiplication methods which would prove to be 
+    the most difficult to comprehend for me. I was able to get the basic outline for both methods and 
+    had a good base but was still producing a few errors and having problems with my output so I gave chatGPT
+    the prompt "I have my methods for addition and multiplication but their output is not coming out correctly
+    such as the addition method only outputing the first value and none of the others and the multiplication
+    method only printing sparse values." 
+
+    The solution that chatGPT came up with fixed my issues but was doing it in a weird way that was not
+    in line with my main method or something I would write so I had to clarify a few times with it what
+    I wanted it to write and to get something that I was happy with using for my project.
+
+    After that was done my code was working correctly and matched the corresponding input / output files
+    that were provided and runs smoothly on my device in VSCode. I asked chatGPT to do one final cleanup
+    and remove any unnecessary code and finished up the project.
+
+*/
+/*                  debugging and testing plan 
+
+The main bulk of my debugging was through trial and error and running my code at every point possible
+throughout the development. Anytime I would make a major change to a class or method and had no large
+compiler errors, I would run my code through the terminal and examine the output I got so I could see 
+how my code was functioning and if it was doing what I expected.
+
+Sometimes I would change a small piece of code and it would send an error ripple through my code and
+cause a large headache where I would then have to backtrack and figure out what caused the issue. A few
+times I would change a piece of code and completely unrelated parts in the main method would pop up with
+error squiggles even though there was no real error present and the code would still compile with no issues.
+This caused a big headache but once I realized the errors weren't real it made things go a lot quicker.
+
+For issues that I did not understand I would ask chatGPT what the issues meant and ask it to explain to me
+the issue and why it was happening so I could understand it better and try to fix it to the best of 
+my ability.
+
+At one point I was attempting to print out the results of the addition and multiplication methods within
+the method themselves instead of the main methods which would result in something called a segmentation fault
+where I was refrencing a null pointer. Once I understood how to do the printing in the main method and 
+returned a matrix from the addition/multiplication methods I was no longer getting an error and my code
+was fully working.
+
+*/
