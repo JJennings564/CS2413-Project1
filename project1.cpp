@@ -318,7 +318,7 @@ int main() {
 
     After that was done my code was working correctly and matched the corresponding input / output files
     that were provided and runs smoothly on my device in VSCode. I asked chatGPT to do one final cleanup
-    and remove any unnecessary code and finished up the project.
+    and remove any unnecessary code to finish up the project.
 
 */
 /*                  debugging and testing plan 
