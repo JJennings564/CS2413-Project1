@@ -116,11 +116,17 @@ public:
     }
 
     SparseMatrix* Addition(SparseMatrix& M) {
-         // Check if the two matrices have the same size
     if (noRows != M.noRows || noCols != M.noCols) {
         cout << "Matrix addition is not possible" << endl;
-        return NULL;
+        return nullptr;
     }
+
+    // result matrix to store new matrix
+    SparseMatrix* result = new SparseMatrix(noRows, noCols, commonValue, 0);
+
+    // Array to store sum in sparse format
+    SparseRow* tempMatrix = new SparseRow[noRows * noCols];
+    int resultNonSparseCount = 0;
 
     // Loop through each cell of the matrix
     for (int i = 0; i < noRows; i++) {
@@ -128,32 +134,105 @@ public:
             int valueA = commonValue;
             int valueB = M.commonValue;
 
-            // Check if the current cell has a non sparse value
+            // Find value in current matrix
             for (int k = 0; k < noNonSparseValues; k++) {
                 if (myMatrix[k].getRow() == i && myMatrix[k].getCol() == j) {
-                    valueA = myMatrix[k].getValue(); // Get the value from the first matrix
-                    break; // Exit loop since we've found the value
+                    valueA = myMatrix[k].getValue(); // Get value from the first matrix
+                    break;
                 }
             }
 
-            // Check if the current cell has a non sparse value
+            // Find value in matrix M
             for (int k = 0; k < M.noNonSparseValues; k++) {
                 if (M.myMatrix[k].getRow() == i && M.myMatrix[k].getCol() == j) {
-                    valueB = M.myMatrix[k].getValue(); // Get the value from the second matrix
-                    break; // Exit loop since we've found the value
+                    valueB = M.myMatrix[k].getValue(); // Get value from the second matrix
+                    break;
                 }
             }
+
             int sum = valueA + valueB;
-            cout << sum << " ";
+
+            // Only store non-sparse values
+            if (sum != commonValue) {
+                tempMatrix[resultNonSparseCount] = SparseRow(i, j, sum);
+                resultNonSparseCount++;
+            }
         }
-        cout << endl;
     }
-    return NULL;
+
+    // Set the non-sparse values count and transfer results to the result matrix
+    result->noNonSparseValues = resultNonSparseCount;
+    delete[] result->myMatrix;  // Delete old empty matrix
+    result->myMatrix = new SparseRow[resultNonSparseCount];
+    for (int i = 0; i < resultNonSparseCount; i++) {
+        result->myMatrix[i] = tempMatrix[i];
+    }
+
+    delete[] tempMatrix; // Free temp storage
+    return result;
 }
 
     SparseMatrix* Multiply(SparseMatrix& M) {
-        // Placeholder logic for multiplication (implementation needed)
-        return this;
+        if (noRows != M.noCols){
+            cout << "Matrix multiplication is not possible" << endl;
+            return nullptr;
+        }
+        // Create a result matrix with dimensions (noRows x M.noCols)
+    SparseMatrix* result = new SparseMatrix(noRows, M.noCols, commonValue, 0); // We don't know noNonSparseValues yet
+
+    // Temporary array to store the non-sparse values of the result matrix
+    int nonSparseCount = 0;
+    SparseRow* tempArray = new SparseRow[noRows * M.noCols];
+
+    // Perform matrix multiplication
+    for (int i = 0; i < noRows; i++) {
+        for (int j = 0; j < M.noCols; j++) {
+            int sum = 0;
+
+            // Compute the dot product of row i from first matrix and column j from second matrix
+            for (int k = 0; k < noCols; k++) {
+                int valueA = commonValue;
+                int valueB = M.commonValue;
+
+                // Find value in matrix A (row i, column k)
+                for (int a = 0; a < noNonSparseValues; a++) {
+                    if (myMatrix[a].getRow() == i && myMatrix[a].getCol() == k) {
+                        valueA = myMatrix[a].getValue();
+                        break;
+                    }
+                }
+
+                // Find value in matrix B (row k, column j)
+                for (int b = 0; b < M.noNonSparseValues; b++) {
+                    if (M.myMatrix[b].getRow() == k && M.myMatrix[b].getCol() == j) {
+                        valueB = M.myMatrix[b].getValue();
+                        break;
+                    }
+                }
+
+                // Multiply the two values and add to the sum
+                sum += valueA * valueB;
+            }
+
+            // If the result is not the common value, store it
+            if (sum != commonValue) {
+                tempArray[nonSparseCount] = SparseRow(i, j, sum);
+                nonSparseCount++;
+            }
+        }
+    }
+
+    // Create a new SparseMatrix with the computed non-sparse values
+    result->noNonSparseValues = nonSparseCount;
+    result->myMatrix = new SparseRow[nonSparseCount];
+    for (int i = 0; i < nonSparseCount; i++) {
+        result->myMatrix[i] = tempArray[i];
+    }
+
+    // Clean up temporary storage
+    delete[] tempArray;
+
+    return result;
     }
 };
 
@@ -171,12 +250,12 @@ int main() {
 
     //Display first matrix in sparse format
     cout << "First one in sparse matrix format" << endl;
-    cout << *firstOne << endl;
+    cout << *firstOne;
 
     // Transpose of the first matrix
     cout << "After Transpose" << endl;
     SparseMatrix* transposed = firstOne->Transpose();
-    cout << *transposed << endl;
+    cout << *transposed;
 
     // Display first matrix
     cout << "First one in matrix format" << endl;
@@ -184,12 +263,12 @@ int main() {
 
     //Display second matrix in sparse format
     cout << "Second one in sparse matrix format" << endl;
-    cout << *secondOne << endl;
+    cout << *secondOne;
 
     //Transpose of the second matrix
     cout << "After Transpose" << endl;
     SparseMatrix* secondTransposed = secondOne->Transpose();
-    cout << *secondTransposed << endl;
+    cout << *secondTransposed;
 
     // Display second matrix
     cout << "Second one in matrix format" << endl;
@@ -198,13 +277,11 @@ int main() {
     // Matrix addition result
     cout << "Matrix Addition Result" << endl;
     temp = firstOne->Addition(*secondOne);
-    cout << *temp;
     temp->displayMatrix();
 
     // Matrix multiplication result
     cout << "Matrix Multiplication Result" << endl;
     temp = firstOne->Multiply(*secondOne);
-    cout << *temp;
     temp->displayMatrix();
 
     // Clean up
